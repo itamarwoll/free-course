@@ -1517,9 +1517,9 @@
         <h2 class="sec-title" style="color:white;">הצטרפו לסדרת הסרטונים<br>ובנו לעצמכם <span style="color:var(--orange-bright)">עתיד פיננסי חכם</span></h2>
         <div class="cta-card">
             <form onsubmit="handleSubmit(event)">
-                <div class="f-field"><input type="text" placeholder="שם מלא" required></div>
-                <div class="f-field"><input type="tel" placeholder="מספר טלפון" required></div>
-                <div class="f-field"><input type="email" placeholder="מייל" required></div>
+                <div class="f-field"><input type="text" name="name" placeholder="שם מלא" required></div>
+                <div class="f-field"><input type="tel" name="phone" placeholder="מספר טלפון" required></div>
+                <div class="f-field"><input type="email" name="email" placeholder="מייל" required></div>
                 <div class="f-check"><input type="checkbox" id="p1" required><label for="p1">אני מאשר\ת את <a href="https://yehonatanwollstein.com/terms/" target="_blank">מדיניות הפרטיות</a> של האתר.</label></div>
                 <div class="f-check"><input type="checkbox" id="m1" required><label for="m1">אני מאשר\ת קבלת הודעת תזכורת ותוכן פרסומי במייל, ב-SMS ובוואטסאפ</label></div>
                 <button type="submit" class="btn-submit">קח אותי לסרטונים</button>
@@ -1721,9 +1721,9 @@
         <h2 class="sec-title" style="color:white;">הצטרפו עכשיו<br><span style="color:var(--orange-bright)">זה חינמי לגמרי</span></h2>
         <div class="cta-card">
             <form onsubmit="handleSubmit(event)">
-                <div class="f-field"><input type="text" placeholder="שם מלא" required></div>
-                <div class="f-field"><input type="tel" placeholder="מספר טלפון" required></div>
-                <div class="f-field"><input type="email" placeholder="מייל" required></div>
+                <div class="f-field"><input type="text" name="name" placeholder="שם מלא" required></div>
+                <div class="f-field"><input type="tel" name="phone" placeholder="מספר טלפון" required></div>
+                <div class="f-field"><input type="email" name="email" placeholder="מייל" required></div>
                 <div class="f-check"><input type="checkbox" id="p2" required><label for="p2">אני מאשר\ת את <a href="https://yehonatanwollstein.com/terms/" target="_blank">מדיניות הפרטיות</a> של האתר.</label></div>
                 <div class="f-check"><input type="checkbox" id="m2" required><label for="m2">אני מאשר\ת קבלת הודעות במייל, SMS ווואטסאפ</label></div>
                 <button type="submit" class="btn-submit">קח אותי לסרטונים</button>
@@ -1996,13 +1996,39 @@
     };
 
     // ─── Form ───
-    window.handleSubmit = function(e) {
+    var GHL_WEBHOOK_URL = 'GHL_WEBHOOK_URL_HERE';
+
+    window.handleSubmit = async function(e) {
         e.preventDefault();
-        var btn = e.target.querySelector('.btn-submit');
-        btn.textContent = '\u2713 \u05E0\u05E8\u05E9\u05DE\u05EA \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4!';
-        btn.style.background = '#38C97A';
+        var form = e.target;
+        var btn = form.querySelector('.btn-submit');
+        var originalText = btn.textContent;
+        var data = {
+            name: form.querySelector('[name="name"]').value,
+            phone: form.querySelector('[name="phone"]').value,
+            email: form.querySelector('[name="email"]').value,
+            source: 'free-course-landing',
+            form_id: form.closest('section') ? form.closest('section').id : '',
+            page_url: window.location.href
+        };
         btn.disabled = true;
-        setTimeout(function() { btn.textContent = '\u05E7\u05D7 \u05D0\u05D5\u05EA\u05D9 \u05DC\u05E1\u05E8\u05D8\u05D5\u05E0\u05D9\u05DD'; btn.style.background = ''; btn.disabled = false; }, 3000);
+        btn.textContent = '\u05E9\u05D5\u05DC\u05D7...';
+        try {
+            var res = await fetch(GHL_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            btn.textContent = '\u2713 \u05E0\u05E8\u05E9\u05DE\u05EA \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4!';
+            btn.style.background = '#38C97A';
+            // TODO: redirect to thank-you / video page once ready
+            // window.location.href = '/thank-you';
+        } catch (err) {
+            btn.textContent = '\u05E9\u05D2\u05D9\u05D0\u05D4 \u2014 \u05E0\u05E1\u05D5 \u05E9\u05D5\u05D1';
+            btn.disabled = false;
+            setTimeout(function () { btn.textContent = originalText; }, 3000);
+        }
     };
 
     // ─── Sticky Mobile CTA ───
